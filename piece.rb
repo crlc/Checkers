@@ -6,7 +6,7 @@ class Piece
     @king = false
   end
 
-  def perform_jump
+  def perform_jump(end_pos)
     positions = valid_pos(move_diffs.map {|row, col| [row * 2, col * 2]})
 
     if positions.include?(end_pos)
@@ -19,6 +19,24 @@ class Piece
     end
 
     maybe_promote
+  end
+
+  def perform_moves(move_sequence)
+    if valid_moves_seq?(move_sequence)
+      perform_moves!(move_sequence)
+    else
+      raise InvalidMoveError "Not a valid move"
+    end
+  end
+
+  def perform_moves!(move_sequence)
+    if move_sequence.length == 1
+      perform_slide(move_sequence.shift)
+    else
+      until move_sequence.empty?
+        perform_jump(move_sequence.shift)
+      end
+    end
   end
 
   def perform_slide(end_pos)
@@ -40,6 +58,17 @@ class Piece
       @symbol = @king ? "\u26C1".encode('utf-8') : "\u26C0".encode('utf-8')
     when :black
       @symbol = @king ? "\u26C3".encode('utf-8') : "\u26C2".encode('utf-8')
+    end
+  end
+
+  def valid_move_seq?(move_sequence)
+    test_board = @board.dup
+    begin
+      test_board.perform_moves!(move_sequence)
+    rescue InvalidMoveError => e
+      false
+    else
+      true
     end
   end
 
