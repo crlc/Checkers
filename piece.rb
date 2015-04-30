@@ -14,8 +14,6 @@ class Piece
       @board[enemy_pos(@pos, end_pos)] = nil
       @pos = end_pos
       #perform_moves!
-    elsif @board.possible_moves?
-      #lose if no possible moves
     else
       raise InvalidMoveError "Not a valid move"
     end
@@ -29,8 +27,6 @@ class Piece
     if positions.include?(end_pos)
       @board[end_pos], @board[@pos] = @board[@pos], nil
       @pos = end_pos
-    elsif @board.possible_moves?
-      #lose if no possible moves
     else
       raise InvalidMoveError "Not a valid move"
     end
