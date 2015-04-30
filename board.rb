@@ -1,10 +1,22 @@
 require_relative 'piece.rb'
 
 class Board
+  attr_reader :grid
 
-  def initialize(initial = true)
+  def initialize(colors, initial = true)
     @grid = Array.new(8) { Array.new(8) }
+    @colors = colors
     setup_pieces if initial
+  end
+
+  def [](pos)
+    i,j = pos
+    @grid[i][j]
+  end
+
+  def []=(pos, obj)
+    i,j = pos
+    @grid[i][j] = obj
   end
 
   def dup
@@ -18,10 +30,6 @@ class Board
       end
     end
     dup_board
-  end
-
-  def over?
-    won? || lost?
   end
 
   def render
@@ -45,13 +53,13 @@ class Board
     end
   end
 
-  def setup_pieces
+  def setup_pieces(colors)
     @grid.each_with_index do |row, i|
       next if i.between?(3,4)
-      color = (i < 4) ? :red : :black
+      color = (i < 4) ? @colors.first : @colors.last
       row.each_index do |j|
         next if (i.even? && j.even?) || (i.odd? && j.odd?)
-        @grid[i][j] = Piece.new(color, [i, j], self)
+        @grid[i][j] = sPiece.new(colors, [i, j], self)
       end
     end
   end
