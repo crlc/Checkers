@@ -1,9 +1,12 @@
 class Piece
   attr_reader :board, :symbol, :color
 
-  def initialize(color, initial_position, board)
-    @color, @pos, @board = color, initial_position, board
-    @king = false
+  def initialize(color, initial_position, board, king = false)
+    @color, @pos, @board, @king = color, initial_position, board, king
+  end
+
+  def dup(dup_board)
+    Piece.new(@color, @pos, dup_board, @king)
   end
 
   def perform_jump(end_pos)
