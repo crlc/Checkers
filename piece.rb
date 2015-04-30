@@ -6,31 +6,30 @@ class Piece
     @pos = initial_position
   end
 
-  def move_diffs
-    array = [[1,1],[1,-1]]
-    if @king
-      array = array + array.map {|row, col| [-row, -col]}
-    else
-      array.map! {|row, col| [-row, -col]} unless @color == :red
-    end
-
-    array
-  end
-
   def perform_jump
-    moves = move_diffs.map {|row, col| [row * 2, col * 2]}
-    positions = valid_pos(move)
+    positions = valid_pos(move_diffs.map {|row, col| [row * 2, col * 2]})
+
+    if positions.include?(end_pos)
+      @board[end_pos], @board[@pos] = @board[@pos], nil
+      @board[enemy_pos(@pos, end_pos)] = nil
+      @pos = end_pos
+    elsif @board.possible_moves?
+      #lose if no possible moves
+    else
+      raise InvalidMoveError "Not a valid move"
+    end
 
     maybe_promote
   end
 
   def perform_slide(end_pos)
-    #select the moves that are on the board have no one on them
     positions = valid_pos(move_diffs)
 
     if positions.include?(end_pos)
-      @board[end_pos], @board[@pos] = @board[@pos], nil #move the piece if a valid move
+      @board[end_pos], @board[@pos] = @board[@pos], nil
       @pos = end_pos
+    elsif @board.possible_moves?
+      #lose if no possible moves
     else
       raise InvalidMoveError "Not a valid move"
     end
@@ -49,8 +48,24 @@ class Piece
     end
   end
 
+  def enemy_pos(start, end)
+    diff = [(end.first - start.first)/2, (end.last - start.last)/2]
+    diff.map! {|row, col| (row + start.first), (col + start.last)}
+  end
+
   def maybe_promote
     @king = true if back_row?
+  end
+
+  def move_diffs
+    array = [[1,1],[1,-1]]
+    if @king
+      array = array + array.map {|row, col| [-row, -col]}
+    else
+      array.map! {|row, col| [-row, -col]} unless @color == :red
+    end
+
+    array
   end
 
   def valid_pos(positions)
