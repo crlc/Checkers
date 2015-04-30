@@ -18,19 +18,23 @@ class Piece
   end
 
   def perform_jump
-    positions = move_diffs.map {|row, col| [row * 2, col * 2]}
+    moves = move_diffs.map {|row, col| [row * 2, col * 2]}
+    positions = valid_pos(move)
 
+    maybe_promote
   end
 
   def perform_slide(end_pos)
     #select the moves that are on the board have no one on them
-    positions = move_diffs.map {|row, col| (row + @pos.first), (col + @post.last)}
+    positions = valid_pos(move_diffs)
+
     if positions.include?(end_pos)
       @board[end_pos], @board[@pos] = @board[@pos], nil #move the piece if a valid move
       @pos = end_pos
     else
       raise InvalidMoveError "Not a valid move"
     end
+
     maybe_promote
   end
 
@@ -47,6 +51,12 @@ class Piece
 
   def maybe_promote
     @king = true if back_row?
+  end
+
+  def valid_pos(positions)
+    positions.map! {|row, col| (row + @pos[0]), (col + @pos[-1])}
+    positions.select! {|row, col| row.between?(0,7) && col.between?(0,7)}
+    positions.select! {|pos| @board[pos].nil?}
   end
 
 end
