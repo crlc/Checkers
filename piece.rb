@@ -1,4 +1,6 @@
+require 'byebug'
 class Piece
+  attr_accessor :pos
   attr_reader :board, :symbol, :color
 
   def initialize(color, initial_position, board, king = false)
@@ -16,40 +18,38 @@ class Piece
       @board[end_pos], @board[@pos] = @board[@pos], nil
       @board[enemy_pos(@pos, end_pos)] = nil
       @pos = end_pos
-      #perform_moves!
     else
-      raise InvalidMoveError "Not a valid move"
+      raise InvalidMoveError.new "Not a valid move"
     end
 
     maybe_promote
   end
 
   def perform_moves(move_sequence)
-    if valid_moves_seq?(move_sequence)
+    if valid_move_seq?(move_sequence)
       perform_moves!(move_sequence)
     else
-      raise InvalidMoveError "Not a valid move"
+      raise InvalidMoveError.new "Not a valid move"
     end
   end
 
   def perform_moves!(move_sequence)
     if move_sequence.length == 1
-      perform_slide(move_sequence.shift)
+      perform_slide(move_sequence.first)
     else
-      until move_sequence.empty?
-        perform_jump(move_sequence.shift)
+      move_sequence.count.times do |i|
+        perform_jump(move_sequence[i])
       end
     end
   end
 
   def perform_slide(end_pos)
-    positions = valid_pos(move_diffs)
-
-    if positions.include?(end_pos)
-      @board[end_pos], @board[@pos] = @board[@pos], nil
+    if self.valid_pos(move_diffs).include?(end_pos)
+      @board[end_pos] = self
+      @board[@pos] = nil
       @pos = end_pos
     else
-      raise InvalidMoveError "Not a valid move"
+      raise InvalidMoveError.new "Not a valid move"
     end
 
     maybe_promote
@@ -67,12 +67,11 @@ class Piece
   def valid_move_seq?(move_sequence)
     test_board = @board.dup
     begin
-      test_board.perform_moves!(move_sequence)
+      test_board[@pos].perform_moves!(move_sequence)
     rescue InvalidMoveError => e
       false
-    else
-      true
     end
+    true
   end
 
   protected
@@ -110,6 +109,7 @@ class Piece
     positions.map! {|row, col| [(row + @pos[0]), (col + @pos[-1])]}
     positions.select! {|row, col| row.between?(0,7) && col.between?(0,7)}
     positions.select! {|pos| @board[pos].nil?}
+    positions
   end
 
 end
